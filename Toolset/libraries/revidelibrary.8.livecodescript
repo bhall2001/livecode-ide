@@ -4141,6 +4141,9 @@ function revIDESpecialFolderPath pKey
       case "Standalone Settings Definitions"
          return item 1 to -3 of the filename of stack "home" & "/Toolset/resources/supporting_files/standalone_settings"
          break
+      case "Preference Definitions"
+         return item 1 to -3 of the filename of stack "home" & "/Toolset/resources/supporting_files/preferences"
+         break
       case "Tool Definitions"
          return item 1 to -3 of the filename of stack "home" & "/Toolset/resources/supporting_files/tool_definitions"
          break
@@ -8763,9 +8766,12 @@ on revIDEToggleToolbar pWhich
 end revIDEToggleToolbar
 
 on revIDEToggleShowIDEStacksInLists
-   global gREvShowStacks
    lock screen
-   set the hilite of button "show revolution stacks" of card "general" of stack "revPreferencesGUI" to not gREVShowStacks
+   local tPreference
+   global gREvShowStacks
+   put revIDEGetPreference("cShowRevolutionStacks") into tPreference
+   revIDESetPreference "cShowRevolutionStacks", not tPreference
+   put not tPreference into gRevSHowStacks
    
    local tOpenStacks
    put the openStacks into tOpenStacks
@@ -12022,3 +12028,31 @@ end revIDEFindMoreWidgets
 command revIDESetEdited pStackName
    revSetEdited pStackName
 end revIDESetEdited
+
+local sPreferencesInfoA
+constant kPreferencesInfoFilename = "preferencesInfo.txt"
+private command __EnsurePreferencesInfo
+   if sPreferencesInfoA is not empty then
+      exit __EnsurePreferencesInfo
+   end if
+   
+   local tIDEPreferencesPath
+   put revIDESpecialFolderPath("Preference Definitions") into tIDEPreferencesPath
+   
+   local tPreferencesInfoA
+   put __propertyDataFromInfoFile(tIDEPreferencesPath & slash & kPreferencesInfoFilename) \
+         into tPreferencesInfoA
+   
+   put __orderPropArray(__organisePropertyInfo(tPreferencesInfoA), \
+         revIDEPreferencesSections()) into sPreferencesInfoA
+end __EnsurePreferencesInfo
+
+function revIDEPreferencesSections
+   return "General"
+end revIDEPreferencesSections
+
+function revIDEPreferencesInfo
+   __EnsurePreferencesInfo
+   return sPreferencesInfoA
+end revIDEPreferencesInfo
+
